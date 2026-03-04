@@ -3,3 +3,4 @@ pystray
 Pillow
 customtkinter
 pyinstaller
+psutil
