@@ -21,6 +21,7 @@ import rumps
 # ── proxy core is a sibling package ────────────────────────────────────────
 sys.path.insert(0, str(Path(__file__).parent))
 import proxy.tg_ws_proxy as tg_ws_proxy
+import updater
 
 # ── paths ───────────────────────────────────────────────────────────────────
 APP_NAME   = "TgWsProxy"
@@ -363,7 +364,31 @@ def main():
     log.info("Config: %s", _config)
     log.info("Log file: %s", LOG_FILE)
 
-    start_proxy(_config)
+    # ── Auto-update proxy core at startup ────────────────────────────────
+    def _do_update():
+        updated = updater.check_and_update()
+        if updated:
+            log.info("Proxy core updated — reloading and restarting proxy")
+            import importlib
+            global tg_ws_proxy
+            try:
+                import proxy.tg_ws_proxy as _fresh
+                importlib.reload(_fresh)
+                tg_ws_proxy = _fresh
+            except Exception as exc:
+                log.error("Failed to reload proxy core after update: %s", exc)
+            restart_proxy()
+            rumps.notification(
+                APP_NAME,
+                "Обновление установлено",
+                "Proxy core обновлён и перезапущен.",
+                sound=False,
+            )
+        else:
+            start_proxy(_config)
+
+    threading.Thread(target=_do_update, daemon=True).start()
+    # ─────────────────────────────────────────────────────────────────────
 
     if not FIRST_RUN_MARKER.exists():
         threading.Thread(target=show_first_run, daemon=True).start()

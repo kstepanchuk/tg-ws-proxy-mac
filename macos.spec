@@ -14,6 +14,7 @@ a = Analysis(
     datas=[],
     hiddenimports=[
         'proxy.tg_ws_proxy',
+        'updater',
         'cryptography',
         'cryptography.hazmat.primitives.ciphers',
         'cryptography.hazmat.primitives.ciphers.algorithms',
